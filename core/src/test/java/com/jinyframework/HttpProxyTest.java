@@ -2,10 +2,7 @@ package com.jinyframework;
 
 import com.jinyframework.core.AbstractRequestBinder.HttpResponse;
 import lombok.val;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
@@ -18,7 +15,7 @@ public class HttpProxyTest {
 
     private final boolean isCI =
             System.getenv("CI") != null
-                    && System.getenv("CI").toLowerCase().equals("true");
+                    && System.getenv("CI").equalsIgnoreCase("true");
 
     @BeforeAll
     static void startProxy() throws InterruptedException {
@@ -46,7 +43,7 @@ public class HttpProxyTest {
         val res = HttpClient.builder()
                 .url(url + "/bio/hello").method("GET")
                 .build().perform();
-        assertEquals(res.getBody(), "Hello World");
+        assertEquals("Hello World", res.getBody());
     }
 
     @Test
@@ -64,7 +61,7 @@ public class HttpProxyTest {
         val res = HttpClient.builder()
                 .url(url + "/").method("GET")
                 .build().perform();
-        assertEquals(res.getStatus(), 404);
+        assertEquals(404, res.getStatus());
     }
 
     @Test
@@ -73,7 +70,7 @@ public class HttpProxyTest {
         val res = HttpClient.builder()
                 .url(url + "/404").method("GET")
                 .build().perform();
-        assertEquals(res.getStatus(), 404);
+        assertEquals(404, res.getStatus());
     }
 
     @Test
@@ -85,13 +82,13 @@ public class HttpProxyTest {
                 .url(url + "/nio/echo").method("POST")
                 .body("Hello World!")
                 .build().perform();
-        assertEquals(res.getBody(), "Hello World!");
+        assertEquals("Hello World!", res.getBody());
     }
 
-    @BeforeEach
+    @AfterEach
     void each() throws InterruptedException {
         if (isCI) {
-            TimeUnit.MILLISECONDS.sleep(1000);
+            TimeUnit.MILLISECONDS.sleep(100);
         }
     }
 }

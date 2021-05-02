@@ -1,7 +1,7 @@
 package com.jinyframework;
 
 import lombok.val;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -15,7 +15,7 @@ public abstract class HTTPTest {
     protected String url = "";
     protected boolean isCI =
             System.getenv("CI") != null
-                    && System.getenv("CI").toLowerCase().equals("true");
+                    && System.getenv("CI").equalsIgnoreCase("true");
 
     @Test
     @DisplayName("Hello World")
@@ -23,7 +23,7 @@ public abstract class HTTPTest {
         val res = HttpClient.builder()
                 .url(url + "/").method("GET")
                 .build().perform();
-        assertEquals(res.getBody(), "Hello World");
+        assertEquals("Hello World", res.getBody());
     }
 
     @Test
@@ -32,7 +32,7 @@ public abstract class HTTPTest {
         val res = HttpClient.builder()
                 .url(url + "/").method("GET")
                 .build().perform();
-        assertEquals(res.getHeader("Content-Type"), "application/json");
+        assertEquals("application/json", res.getHeader("Content-Type"));
     }
 
     @Test
@@ -41,30 +41,26 @@ public abstract class HTTPTest {
         val res = HttpClient.builder()
                 .url(url + "/immediate").method("GET")
                 .build().perform();
-        assertEquals(res.getBody(), "Foo");
+        assertEquals("Foo", res.getBody());
     }
 
+    // Temporary disable: CI error
     @Test
     @DisplayName("Transformer")
     void transformer() throws IOException {
-        // Reason for failing on CI still not known
-        if (isCI) return;
-
         val res = HttpClient.builder()
                 .url(url + "/transform").method("POST").body("transform")
                 .build().perform();
-        assertEquals(res.getBody(), "transformed");
+        assertEquals("transformed", res.getBody());
     }
 
     @Test
     @DisplayName("Echo")
     void echo() throws IOException {
-        if (isCI) return;
-
         val res = HttpClient.builder()
                 .url(url + "/echo").method("POST").body("copycat")
                 .build().perform();
-        assertEquals(res.getBody(), "copycat");
+        assertEquals("copycat", res.getBody());
     }
 
     @Test
@@ -73,7 +69,7 @@ public abstract class HTTPTest {
         val res = HttpClient.builder()
                 .url(url + "/header").method("GET")
                 .build().perform();
-        assertEquals(res.getHeader("foo"), "bar");
+        assertEquals("bar", res.getHeader("foo"));
     }
 
     @Test
@@ -83,7 +79,7 @@ public abstract class HTTPTest {
                 .url(url + "/req-header").method("GET")
                 .header("Foo", "foo").header("Bar", "bar")
                 .build().perform();
-        assertEquals(res.getBody(), "foobar");
+        assertEquals("foobar", res.getBody());
     }
 
     @Test
@@ -101,7 +97,7 @@ public abstract class HTTPTest {
         val res = HttpClient.builder()
                 .url(url + "/path/hello/123").method("GET")
                 .build().perform();
-        assertEquals(res.getBody(), "hello:123");
+        assertEquals("hello:123", res.getBody());
     }
 
     @Test
@@ -110,7 +106,7 @@ public abstract class HTTPTest {
         val res = HttpClient.builder()
                 .url(url + "/data/param").method("GET")
                 .build().perform();
-        assertEquals(res.getBody(), "ok");
+        assertEquals("ok", res.getBody());
     }
 
     @Test
@@ -119,7 +115,7 @@ public abstract class HTTPTest {
         val res = HttpClient.builder()
                 .url(url + "/all/123/456").method("GET")
                 .build().perform();
-        assertEquals(res.getBody(), "/all/123/456");
+        assertEquals("/all/123/456", res.getBody());
     }
 
     @Test
@@ -140,8 +136,8 @@ public abstract class HTTPTest {
         val res = HttpClient.builder()
                 .url(url + "/protected").method("GET").headers(headers)
                 .build().perform();
-        assertEquals(res.getStatus(), 200);
-        assertEquals(res.getBody(), "success:tuhuynh");
+        assertEquals(200, res.getStatus());
+        assertEquals("success:tuhuynh", res.getBody());
     }
 
     @Test
@@ -150,8 +146,8 @@ public abstract class HTTPTest {
         val res = HttpClient.builder()
                 .url(url + "/panic").method("GET")
                 .build().perform();
-        assertEquals(res.getStatus(), 500);
-        assertEquals(res.getBody(), "Panicked!");
+        assertEquals(500, res.getStatus());
+        assertEquals("Panicked!", res.getBody());
     }
 
     @Test
@@ -160,19 +156,19 @@ public abstract class HTTPTest {
         val hasOk = HttpClient.builder()
                 .url(url + "/hasCase").method("GET")
                 .build().perform();
-        assertEquals(200, hasOk.getStatus());
+        assertEquals(hasOk.getStatus(), 200);
         val hasFail = HttpClient.builder()
                 .url(url + "/hascase").method("GET")
                 .build().perform();
-        assertEquals(404, hasFail.getStatus());
+        assertEquals(hasFail.getStatus(),404);
         val nonOk = HttpClient.builder()
                 .url(url + "/noncase").method("GET")
                 .build().perform();
-        assertEquals(200, nonOk.getStatus());
+        assertEquals(nonOk.getStatus(), 200);
         val nonFail = HttpClient.builder()
                 .url(url + "/nonCase").method("GET")
                 .build().perform();
-        assertEquals(404, nonFail.getStatus());
+        assertEquals(nonFail.getStatus(), 404);
     }
 
     @Test
@@ -181,7 +177,7 @@ public abstract class HTTPTest {
         val res = HttpClient.builder()
                 .url(url + "/gm").method("GET")
                 .build().perform();
-        assertEquals(res.getBody(), "middleware");
+        assertEquals("middleware", res.getBody());
     }
 
     @Test
@@ -190,7 +186,7 @@ public abstract class HTTPTest {
         val res = HttpClient.builder()
                 .url(url + "/gm-sub").method("GET")
                 .build().perform();
-        assertEquals(res.getBody(), "");
+        assertEquals("", res.getBody());
     }
 
     @Test
@@ -199,19 +195,17 @@ public abstract class HTTPTest {
         val res = HttpClient.builder()
                 .url(url + "/cat").method("GET")
                 .build().perform();
-        assertEquals(res.getBody(), "this is a cat");
+        assertEquals("this is a cat", res.getBody());
     }
 
     @Test
     @DisplayName("SubRouter2")
     void subRouter2() throws IOException {
-        if (isCI) return;
-
         val res = HttpClient.builder()
                 .url(url + "/cat/test").method("POST")
                 .body("catTest")
                 .build().perform();
-        assertEquals(res.getBody(), "catTest");
+        assertEquals("catTest", res.getBody());
     }
 
     @Test
@@ -229,17 +223,11 @@ public abstract class HTTPTest {
         val res = HttpClient.builder()
                 .url(url + "/cat/foo/bar").method("GET")
                 .build().perform();
-        assertEquals(res.getBody(), "foo:bar");
+        assertEquals("foo:bar", res.getBody());
     }
 
-    @BeforeEach
+    @AfterEach
     void each() throws InterruptedException {
-        // Do something on CI if (isCI)
-        // TimeUnit.SECONDS.sleep(1);
-        // No sleep
-
-        if (isCI) {
-            TimeUnit.MILLISECONDS.sleep(1000);
-        }
+        TimeUnit.MILLISECONDS.sleep(100);
     }
 }
